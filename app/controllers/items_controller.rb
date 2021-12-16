@@ -1,5 +1,5 @@
 class ItemsController < ApplicationController
-  before_action :authenticate_user!, except: [:show, :index]
+  before_action :authenticate_user!, except: [:show, :index, :items_by_category]
   before_action :set_item, only: [:show, :items_by_user]
   before_action :set_user, only: [:create, :items_by_user, :item_params]
   
@@ -44,9 +44,17 @@ class ItemsController < ApplicationController
     end
   end
 
+  def items_by_category
+    @param = params[:id].to_i
+
+    @items = Item.where(category_id: @param)
+
+    render json: { success: true, items: @items }
+  end
+
   private
   def item_params
-      params.require(:item).permit(:name, :description, :price).with_defaults(user_id: set_user)
+      params.require(:item).permit(:name, :description, :price, :category_id).with_defaults(user_id: set_user)
   end
 
   def set_item
