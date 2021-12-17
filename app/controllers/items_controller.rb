@@ -5,13 +5,7 @@ class ItemsController < ApplicationController
   
   def index   
     @items = Item.all
-
-    # if current_user.admin?
-    #   @res = 'soy admin'
-    # else
-    #   @res = 'pobre'
-    # end
-
+    
     render json: {items: @items }
   end
 

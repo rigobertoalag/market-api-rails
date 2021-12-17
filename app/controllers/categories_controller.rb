@@ -1,7 +1,7 @@
 class CategoriesController < ApplicationController
-  #before_action :authenticate_user!, except: [:show, :index]
+  before_action :authenticate_user!, only: [:create]
   before_action :set_category, only: [:show]
-  # before_action :set_user, only: [:create, :items_by_user, :item_params]
+  before_action :set_user, only: [:create]
 
   def index
     @categories = Category.all
@@ -20,12 +20,15 @@ class CategoriesController < ApplicationController
   end
 
   def create
-    @category = Category.create(category_params)
-
-    if @category.save
-      render json: { success: true, message: "Categoria guardada con exito" }
+    if current_user.admin?
+      @category = Category.create(category_params)
+      if @category.save
+        render json: { success: true, message: "Categoria guardada con exito" }
+      else
+        render json: { error: true, category: @category }
+      end
     else
-      render json: { error: true, category: @category }
+      render json: { error: true, message: "No tienes permiso" }
     end
   end
 
@@ -39,5 +42,9 @@ class CategoriesController < ApplicationController
 
   def set_category
     Category.find(params[:id])
+  end
+
+  def set_user
+    current_user.id
   end
 end
