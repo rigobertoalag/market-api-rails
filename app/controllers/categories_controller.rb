@@ -6,13 +6,20 @@ class CategoriesController < ApplicationController
   def index
     @categories = Category.all
 
-    render json: {categories: @categories }
+    render json: {
+      links: {self: set_current_url},
+      data: {type: 'categories', attributes: @categories}
+    }
   end
 
   def show
     @category = set_category
+    @cat = @category.name,  @category.description , @category.created_at
 
-    render json: { success: true, category: @category }
+    render json: {
+      links: {self: set_current_url},
+      data: {type: 'categories', id: @category.id, attributes: @cat }
+    }
   end
 
   def new
@@ -23,9 +30,18 @@ class CategoriesController < ApplicationController
     if current_user.admin?
       @category = Category.create(category_params)
       if @category.save
-        render json: { success: true, message: "Categoria guardada con exito" }
+        @cat = @category.name, @category.description, @category.created_at
+        render json: {
+          data: {type: 'categories', id: @category.id, attributes: @cat },
+          links: {self: set_current_url}
+        }
       else
-        render json: { error: true, category: @category }
+        render json: {
+          status: 406,
+          code: "ESC",
+          title: "Error on save category",
+          detail: @category.errors.full_messages,
+        }, status: :not_acceptable
       end
     else
       render json: { error: true, message: "No tienes permiso" }
@@ -46,5 +62,9 @@ class CategoriesController < ApplicationController
 
   def set_user
     current_user.id
+  end
+
+  def set_current_url
+    request.original_url
   end
 end

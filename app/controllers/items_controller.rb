@@ -5,14 +5,22 @@ class ItemsController < ApplicationController
   
   def index   
     @items = Item.all
-    
-    render json: {items: @items }
+
+    render json: {
+      links: {self: set_current_url},
+      data: {type: 'items', attributes: @items}
+    }
   end
 
   def show
     @item = set_item
 
-    render json: { success: true, item: @item }
+    @i = @item.name,  @item.description , @item.created_at
+
+    render json: {
+      links: {self: set_current_url},
+      data: {type: 'items', id: @item.id, attributes: @i }
+    }
   end
 
   def new
@@ -20,12 +28,24 @@ class ItemsController < ApplicationController
   end
 
   def create
-    @item = Item.create(item_params)
-
-    if @item.save
-      render json: { success: true, message: "Se guardo con exito" }
+    if current_user.admin?
+      @item = Item.create(item_params)
+      if @item.save
+        @i = @item.name,  @item.description , @item.created_at
+        render json: {
+          data: {type: 'items', id: @item.id, attributes: @i },
+          links: {self: set_current_url}
+        }
+      else
+        render json: {
+          status: 406,
+          code: "ESI",
+          title: "Error on save item",
+          detail: @item.errors.full_messages,
+        }, status: :not_acceptable
+      end
     else
-      render json: { error: true, item: @item, user: set_user }
+      render json: { error: true, message: "No tienes permiso" }
     end
   end
 
@@ -46,11 +66,12 @@ class ItemsController < ApplicationController
   end
 
   def items_by_category
-    @param = params[:id].to_i
+    @items = set_category
 
-    @items = Item.where(category_id: @param)
-
-    render json: { success: true, items: @items }
+    render json: {
+      links: {self: set_current_url},
+      data: {type: 'items', attributes: @items }
+    }
   end
 
   private
@@ -62,7 +83,15 @@ class ItemsController < ApplicationController
     Item.find(params[:id])
   end
 
+  def set_category
+    Item.where(category_id: params[:id])
+  end
+
   def set_user
     current_user.id
+  end
+
+  def set_current_url
+    request.original_url
   end
 end
