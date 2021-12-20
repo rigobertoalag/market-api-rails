@@ -2,7 +2,6 @@ class CategoriesController < ApplicationController
   before_action :authenticate_user!, only: [:create]
   before_action :set_category, only: [:show]
   before_action :set_user, only: [:create]
-  
 
   def index
     @categories = Category.all
@@ -37,12 +36,9 @@ class CategoriesController < ApplicationController
           links: {self: set_current_url}
         }
       else
-        @error = 'error'
-        # response = http.request_head('/')
-        # json_response(@error, :unprocessable_entity)
         render json: {
           status: 406,
-          code: "ESD",
+          code: "ESC",
           title: "Error on save category",
           detail: @category.errors.full_messages,
         }, status: :not_acceptable
